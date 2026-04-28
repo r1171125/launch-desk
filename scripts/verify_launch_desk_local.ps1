@@ -93,8 +93,10 @@ Invoke-Step "Python syntax check" {
             launch_desk\wsgi.py `
             launch_desk\routes.py `
             scripts\verify_launch_desk_stream.py `
+            scripts\verify_launch_desk_frontend_page.py `
             tests\test_launch_desk_agent_contract.py `
-            tests\test_launch_desk_routes.py
+            tests\test_launch_desk_routes.py `
+            tests\test_launch_desk_post_deploy_verifiers.py
     }
 }
 
@@ -103,7 +105,8 @@ Invoke-Step "Launch Desk unit tests" {
         python -m pytest `
             tests\test_launch_desk_tools.py `
             tests\test_launch_desk_routes.py `
-            tests\test_launch_desk_agent_contract.py
+            tests\test_launch_desk_agent_contract.py `
+            tests\test_launch_desk_post_deploy_verifiers.py
     }
 }
 

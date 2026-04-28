@@ -58,6 +58,17 @@ python scripts\verify_launch_desk_stream.py --url http://127.0.0.1:5057/api/laun
 
 The stream verifier must see at least one `tool_progress`, one `text_delta`, and one `complete` event. The `complete` event must include `model`, `trace_id`, `duration_ms`, `timeout_seconds`, `tool_count`, `tool_completion_count`, and `text_char_count`.
 
+For production post-deploy verification, use:
+
+```powershell
+.\scripts\verify_launch_desk_post_deploy.ps1 `
+  -BackendBaseUrl "https://launch-desk-backend-6gtyc6yuoq-de.a.run.app" `
+  -FrontendUrl "https://launch-desk-orcin.vercel.app"
+```
+
+For a human-confirmed browser gate, add `-OpenBrowser -RequireBrowserConfirmation`.
+The full checklist is in `docs/launch_desk/post_deploy_verification.md`.
+
 ## Release Procedure
 
 1. Confirm the deploy commit only changes Launch Desk-owned files.

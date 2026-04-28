@@ -63,8 +63,10 @@ jobs:
             launch_desk/tools.py \
             launch_desk/wsgi.py \
             scripts/run_launch_desk_backend.py \
+            scripts/verify_launch_desk_frontend_page.py \
             scripts/verify_launch_desk_stream.py \
             tests/test_launch_desk_agent_contract.py \
+            tests/test_launch_desk_post_deploy_verifiers.py \
             tests/test_launch_desk_routes.py \
             tests/test_launch_desk_tools.py
 
@@ -73,7 +75,8 @@ jobs:
           python -m pytest \
             tests/test_launch_desk_tools.py \
             tests/test_launch_desk_routes.py \
-            tests/test_launch_desk_agent_contract.py
+            tests/test_launch_desk_agent_contract.py \
+            tests/test_launch_desk_post_deploy_verifiers.py
 
   frontend:
     name: Frontend build

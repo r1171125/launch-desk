@@ -40,6 +40,7 @@
 - `launch-desk-frontend/.env.local.example` documents the frontend API base URL.
 - `scripts/verify_launch_desk_local.ps1 -SkipLiveStream` runs syntax, unit tests, and frontend build without requiring OpenAI network access.
 - `scripts/verify_launch_desk_local.ps1 -StartServers` can start both dev servers and run live streamed verification when `OPENAI_API_KEY` is configured.
+- `scripts/verify_launch_desk_post_deploy.ps1` runs the fixed production post-deploy sequence for backend stream verification, frontend page verification, and browser checklist output.
 - Backend server starts with `OPENAI_API_KEY` visible to that process.
 - Frontend server starts with `NEXT_PUBLIC_LAUNCH_DESK_API_BASE` pointing at the backend.
 - `/api/launch-desk/health` confirms whether the backend process sees `OPENAI_API_KEY`.
@@ -59,6 +60,7 @@
 - `launch_desk/requirements-dev.txt` defines CI/test dependencies for Launch Desk only.
 - `docs/launch_desk/deployment_settings.md` defines backend/frontend service settings without binding deployment to the main site.
 - `docs/launch_desk/deploy_cloud_run_vercel.md` documents the Cloud Run backend and Vercel frontend deployment sequence.
+- `docs/launch_desk/post_deploy_verification.md` documents the production backend/frontend verification sequence and pass criteria.
 - `docs/launch_desk/production_runbook.md` defines the isolated backend/frontend deployment boundary.
 - The runbook lists required backend and frontend environment variables.
 - The runbook includes pre-deployment checks, release steps, observability signals, rollback steps, and common failure responses.
