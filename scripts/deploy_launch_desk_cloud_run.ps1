@@ -6,6 +6,7 @@ param(
     [string]$ServiceName = "launch-desk-backend",
     [string]$ArtifactRepository = "launch-desk",
     [string]$SecretName = "launch-desk-openai-api-key",
+    [string]$RuntimeServiceAccount = "",
     [string]$FrontendOrigin = "",
     [string]$ImageTag = ""
 )
@@ -37,6 +38,12 @@ Require-Command "tar"
 $sha = (git -C $root rev-parse --short HEAD).Trim()
 if (-not $ImageTag) {
     $ImageTag = $sha
+}
+if (-not $RuntimeServiceAccount) {
+    $projectNumber = (
+        gcloud projects describe $ProjectId --format "value(projectNumber)"
+    ).Trim()
+    $RuntimeServiceAccount = "$projectNumber-compute@developer.gserviceaccount.com"
 }
 
 $image = "$Region-docker.pkg.dev/$ProjectId/$ArtifactRepository/${ServiceName}:$ImageTag"
@@ -85,6 +92,15 @@ Invoke-Native {
         --substitutions "_IMAGE=$image"
 }
 
+Write-Host "Granting secret access to runtime service account: $RuntimeServiceAccount" -ForegroundColor Cyan
+Invoke-Native {
+    gcloud secrets add-iam-policy-binding $SecretName `
+        --project $ProjectId `
+        --member "serviceAccount:$RuntimeServiceAccount" `
+        --role "roles/secretmanager.secretAccessor" `
+        --quiet
+}
+
 $envVars = @(
     "LAUNCH_DESK_MODEL=gpt-5.4-mini",
     "LAUNCH_DESK_MAX_TOKENS=3600",
@@ -106,6 +122,7 @@ Invoke-Native {
         --platform managed `
         --allow-unauthenticated `
         --port 8080 `
+        --service-account $RuntimeServiceAccount `
         --set-env-vars ($envVars -join ",") `
         --set-secrets "OPENAI_API_KEY=${SecretName}:latest"
 }

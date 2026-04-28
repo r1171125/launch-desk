@@ -51,6 +51,10 @@ From the repository root:
 
 The script creates a clean deploy context from `git archive HEAD`, so local
 untracked files from the original workspace are not uploaded to Cloud Build.
+It also grants `roles/secretmanager.secretAccessor` on the backend secret to the
+Cloud Run runtime service account. By default, that runtime identity is the
+Compute Engine default service account for the project. To use a dedicated
+service account, pass `-RuntimeServiceAccount`.
 
 After deployment, capture the backend URL:
 
