@@ -1,0 +1,521 @@
+:root {
+  --bg: #f6f4ef;
+  --paper: #fffdf8;
+  --paper-strong: #ffffff;
+  --ink: #17201c;
+  --muted: #64706b;
+  --line: #ded8ca;
+  --line-strong: #c8c0b0;
+  --teal: #17736b;
+  --teal-soft: #d6efea;
+  --amber: #b6751d;
+  --amber-soft: #f6e2bf;
+  --danger: #a83d32;
+  --shadow: 0 18px 40px rgba(36, 31, 22, 0.08);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+.appShell {
+  min-height: 100vh;
+  padding: 22px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  max-width: 1540px;
+  margin: 0 auto 18px;
+}
+
+.brandKicker {
+  color: var(--teal);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(34px, 4vw, 58px);
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+
+h2 {
+  font-size: 19px;
+  letter-spacing: 0;
+}
+
+.serverBadge,
+.stateChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 253, 248, 0.8);
+  padding: 9px 12px;
+  color: var(--muted);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.pulse {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  background: var(--teal);
+  box-shadow: 0 0 0 5px var(--teal-soft);
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(300px, 390px) minmax(430px, 1fr) minmax(280px, 360px);
+  gap: 16px;
+  max-width: 1540px;
+  margin: 0 auto;
+  align-items: start;
+}
+
+.inputPane,
+.agentPane,
+.insightPane {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 253, 248, 0.94);
+  box-shadow: var(--shadow);
+}
+
+.inputPane,
+.agentPane {
+  padding: 18px;
+}
+
+.insightPane {
+  display: grid;
+  gap: 12px;
+  padding: 12px;
+}
+
+.paneHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.paneHeader p,
+.inlineHint,
+.errorText {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+  margin-top: 5px;
+}
+
+.fieldGroup {
+  display: grid;
+  gap: 7px;
+  margin-bottom: 13px;
+}
+
+.fieldGroup span,
+.readinessMini span {
+  color: #39433f;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+input,
+textarea {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper-strong);
+  color: var(--ink);
+  padding: 11px 12px;
+  outline: none;
+  resize: vertical;
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 3px var(--teal-soft);
+}
+
+.splitFields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 128px;
+  gap: 12px;
+  align-items: end;
+}
+
+.readinessMini {
+  display: grid;
+  gap: 7px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f4f1e8;
+  padding: 11px 12px;
+  min-height: 68px;
+}
+
+.readinessMini strong {
+  color: var(--teal);
+  font-size: 18px;
+}
+
+.ghostButton,
+.runButton {
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: var(--paper-strong);
+  color: var(--ink);
+  padding: 10px 12px;
+  font-weight: 800;
+}
+
+.ghostButton:hover,
+.runButton:hover:not(:disabled) {
+  border-color: var(--teal);
+}
+
+.runButton {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: var(--ink);
+  color: #fffaf0;
+  min-height: 48px;
+}
+
+.runButton span {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--teal);
+}
+
+.runButton:disabled {
+  background: #aaa296;
+  color: #fffaf0;
+}
+
+.errorText {
+  color: var(--danger);
+}
+
+.stateChip.running {
+  border-color: var(--teal);
+  color: var(--teal);
+  background: var(--teal-soft);
+}
+
+.timeline {
+  display: grid;
+  gap: 10px;
+  min-height: 210px;
+  max-height: 330px;
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #f4f1e8;
+  padding: 12px;
+}
+
+.emptyState {
+  display: grid;
+  align-content: center;
+  gap: 8px;
+  min-height: 180px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.emptyState strong {
+  color: var(--ink);
+  font-size: 18px;
+}
+
+.timelineItem {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.timelineItem strong {
+  display: block;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
+.timelineItem span:last-child {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.timelineDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--line-strong);
+  margin-top: 4px;
+}
+
+.timelineItem.tool_progress .timelineDot {
+  background: var(--amber);
+}
+
+.timelineItem.text_delta .timelineDot {
+  background: var(--teal);
+}
+
+.responseCard,
+.insightBlock {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper-strong);
+}
+
+.responseCard {
+  margin-top: 14px;
+  overflow: hidden;
+}
+
+.responseHeader,
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid var(--line);
+  padding: 12px 14px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.responseTitle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.responseTitle span:first-child {
+  color: var(--ink);
+}
+
+.responseActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.responseActions button {
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: #fbf8f0;
+  color: var(--ink);
+  padding: 7px 10px;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.responseActions button:hover:not(:disabled) {
+  border-color: var(--teal);
+  color: var(--teal);
+}
+
+.responseActions button:disabled {
+  color: var(--muted);
+  opacity: 0.55;
+}
+
+.responseCard pre {
+  min-height: 280px;
+  max-height: 520px;
+  overflow: auto;
+  margin: 0;
+  padding: 18px;
+  white-space: pre-wrap;
+  color: #1d2924;
+  line-height: 1.55;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  font-size: 14px;
+}
+
+.insightBlock {
+  padding-bottom: 12px;
+}
+
+.scoreRing {
+  --score: 0;
+  width: 132px;
+  height: 132px;
+  display: grid;
+  place-items: center;
+  margin: 18px auto 12px;
+  border-radius: 999px;
+  background: conic-gradient(var(--teal) calc(var(--score) * 1%), #eee7d8 0);
+}
+
+.scoreRing span {
+  display: grid;
+  place-items: center;
+  width: 98px;
+  height: 98px;
+  border-radius: 999px;
+  background: var(--paper-strong);
+  color: var(--teal);
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.rubricList,
+.toolList,
+.ownerList {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+  padding: 0 14px;
+}
+
+.rubricList {
+  list-style: none;
+}
+
+.rubricList li,
+.toolRow,
+.ownerCard {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbf8f0;
+  padding: 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.rubricList li {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.checkMark {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--amber);
+}
+
+.checkMark.pass {
+  background: var(--teal);
+}
+
+.toolRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.toolRow span,
+.toolRow strong {
+  overflow-wrap: anywhere;
+}
+
+.toolList p,
+.ownerList p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.ownerCard {
+  display: grid;
+  gap: 6px;
+}
+
+.ownerCard strong {
+  color: var(--ink);
+}
+
+@media (max-width: 1180px) {
+  .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .insightPane {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 760px) {
+  .appShell {
+    padding: 14px;
+  }
+
+  .topbar,
+  .paneHeader,
+  .splitFields {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .serverBadge {
+    width: fit-content;
+  }
+
+  .insightPane {
+    grid-template-columns: 1fr;
+  }
+
+  .responseCard pre {
+    min-height: 230px;
+  }
+}
