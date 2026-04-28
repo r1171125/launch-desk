@@ -64,6 +64,7 @@ jobs:
             launch_desk/wsgi.py \
             scripts/run_launch_desk_backend.py \
             scripts/verify_launch_desk_frontend_page.py \
+            scripts/verify_launch_desk_vercel_deployment.py \
             scripts/verify_launch_desk_stream.py \
             tests/test_launch_desk_agent_contract.py \
             tests/test_launch_desk_post_deploy_verifiers.py \

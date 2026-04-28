@@ -3,8 +3,14 @@ param(
     [string]$BackendBaseUrl = "https://launch-desk-backend-6gtyc6yuoq-de.a.run.app",
     [string]$FrontendUrl = "https://launch-desk-orcin.vercel.app",
     [string]$Python = "python",
+    [string]$VercelDeploymentUrl = "",
+    [string]$ExpectedVercelCommitSha = "",
+    [string]$VercelTeamId = $env:VERCEL_TEAM_ID,
+    [string]$VercelTeamSlug = $env:VERCEL_TEAM_SLUG,
     [switch]$SkipBackendStream,
     [switch]$SkipFrontendPage,
+    [switch]$SkipVercelDeployment,
+    [switch]$RequireVercelDeploymentMetadata,
     [switch]$OpenBrowser,
     [switch]$RequireBrowserConfirmation
 )
@@ -15,6 +21,9 @@ $BackendBaseUrl = $BackendBaseUrl.TrimEnd("/")
 $FrontendUrl = $FrontendUrl.TrimEnd("/")
 $BackendStreamUrl = "$BackendBaseUrl/api/launch-desk/stream"
 $ExpectedApiHost = ([System.Uri]$BackendBaseUrl).Host
+if ([string]::IsNullOrWhiteSpace($VercelDeploymentUrl)) {
+    $VercelDeploymentUrl = $FrontendUrl
+}
 
 function Invoke-LaunchDeskStep {
     param(
@@ -47,6 +56,38 @@ try {
             & $Python "scripts\verify_launch_desk_frontend_page.py" `
                 --url $FrontendUrl `
                 --expected-api-host $ExpectedApiHost
+        }
+    }
+
+    if (-not $SkipVercelDeployment) {
+        if ([string]::IsNullOrWhiteSpace($ExpectedVercelCommitSha)) {
+            $ExpectedVercelCommitSha = (& git rev-parse HEAD 2>$null)
+            if ($LASTEXITCODE -ne 0) {
+                $ExpectedVercelCommitSha = ""
+            }
+        }
+
+        Invoke-LaunchDeskStep "Vercel deployment metadata verification" {
+            $vercelArgs = @(
+                "scripts\verify_launch_desk_vercel_deployment.py",
+                "--deployment-url",
+                $VercelDeploymentUrl,
+                "--expected-state",
+                "READY"
+            )
+            if (-not [string]::IsNullOrWhiteSpace($ExpectedVercelCommitSha)) {
+                $vercelArgs += @("--expected-commit", $ExpectedVercelCommitSha.Trim())
+            }
+            if (-not [string]::IsNullOrWhiteSpace($VercelTeamId)) {
+                $vercelArgs += @("--team-id", $VercelTeamId)
+            }
+            if (-not [string]::IsNullOrWhiteSpace($VercelTeamSlug)) {
+                $vercelArgs += @("--team-slug", $VercelTeamSlug)
+            }
+            if ($RequireVercelDeploymentMetadata) {
+                $vercelArgs += "--required"
+            }
+            & $Python @vercelArgs
         }
     }
 

@@ -48,7 +48,25 @@ This runs:
 - Backend streamed API verification via `scripts/verify_launch_desk_stream.py`.
 - Frontend deployed page verification via
   `scripts/verify_launch_desk_frontend_page.py`.
+- Vercel deployment metadata verification via
+  `scripts/verify_launch_desk_vercel_deployment.py` when `VERCEL_TOKEN` is set.
 - A fixed browser checklist for the production UI flow.
+
+The Vercel metadata gate checks that the deployment behind the frontend URL is
+`READY` and, by default, matches the local `git rev-parse HEAD` commit. It is
+skipped with a clear message when `VERCEL_TOKEN` is not set, so backend/frontend
+runtime verification still runs in environments without Vercel API access.
+
+For a strict release gate that fails when Vercel metadata is unavailable:
+
+```powershell
+$env:VERCEL_TOKEN = "<token with deployment read access>"
+$env:VERCEL_TEAM_SLUG = "r1171125s-projects"
+.\scripts\verify_launch_desk_post_deploy.ps1 `
+  -BackendBaseUrl "https://launch-desk-backend-6gtyc6yuoq-de.a.run.app" `
+  -FrontendUrl "https://launch-desk-orcin.vercel.app" `
+  -RequireVercelDeploymentMetadata
+```
 
 For a release gate where a human should confirm the browser behavior:
 
@@ -87,6 +105,22 @@ the expected Launch Desk UI text plus the configured backend API host.
 
 This is a lightweight page check, not a substitute for browser interaction.
 
+## Vercel Deployment Metadata Pass Criteria
+
+When `VERCEL_TOKEN` is configured, the Vercel deployment verifier checks:
+
+- `readyState` or `status` is `READY`.
+- The Vercel deployment commit SHA matches the expected commit SHA.
+- The deployment metadata can be fetched for the production frontend URL.
+
+The expected commit defaults to local `git rev-parse HEAD`. Override it when
+verifying an older or manually selected deployment:
+
+```powershell
+.\scripts\verify_launch_desk_post_deploy.ps1 `
+  -ExpectedVercelCommitSha "c6c7dc62d6b6e5eb7bce37f27ccafbffcf10b7ea"
+```
+
 ## Browser Pass Criteria
 
 Open the production frontend and verify:
@@ -114,5 +148,8 @@ Open the production frontend and verify:
 | Backend verifier reports `authentication_error` | Cloud Run cannot read a valid OpenAI key | Check `OPENAI_API_KEY` secret reference and Secret Manager access |
 | Backend verifier reports `network_error` | Cloud Run cannot reach OpenAI | Check Cloud Run egress/network policy and retry |
 | Backend verifier reports `rate_limited` | Launch Desk local limiter or OpenAI rate limit | Wait, then retry; adjust only Launch Desk rate settings if needed |
+| Vercel metadata verifier skips | `VERCEL_TOKEN` is not set | Set `VERCEL_TOKEN` and optionally `VERCEL_TEAM_ID` or `VERCEL_TEAM_SLUG` |
+| Vercel metadata verifier reports commit mismatch | Production frontend is not deployed from the expected commit | Wait for Vercel deployment to finish, redeploy, or pass the intended commit via `-ExpectedVercelCommitSha` |
+| Vercel metadata verifier reports non-READY status | Vercel deployment is still building or failed | Check the Vercel deployment page before running the browser gate |
 | Frontend page verifier misses API host | Vercel was built with the wrong API base URL | Update `NEXT_PUBLIC_LAUNCH_DESK_API_BASE` and redeploy frontend |
 | Browser shows CORS failure | Cloud Run allowed origins do not include the Vercel URL | Update `LAUNCH_DESK_ALLOWED_ORIGINS` and create a new Cloud Run revision |

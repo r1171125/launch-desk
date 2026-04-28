@@ -67,6 +67,8 @@ For production post-deploy verification, use:
 ```
 
 For a human-confirmed browser gate, add `-OpenBrowser -RequireBrowserConfirmation`.
+For a strict Vercel deployment metadata gate, set `VERCEL_TOKEN` and add
+`-RequireVercelDeploymentMetadata`.
 The full checklist is in `docs/launch_desk/post_deploy_verification.md`.
 
 ## Release Procedure

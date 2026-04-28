@@ -10,6 +10,7 @@ Launch Desk is a working launch-planning agent app for engineering teams. It tur
 - `launch_desk/tools.py` contains deterministic tool implementations that are wrapped as SDK function tools.
 - `scripts/run_launch_desk_backend.py` starts the lightweight Flask backend for local Launch Desk development.
 - `scripts/verify_launch_desk_stream.py` posts to the local stream endpoint and confirms tool progress, model text delta, completion, and completion metadata.
+- `scripts/verify_launch_desk_vercel_deployment.py` checks Vercel deployment status and commit metadata when a Vercel token is configured.
 - `scripts/verify_launch_desk_local.ps1` runs the local packaging checks and can optionally start both dev servers for a live stream check.
 - `scripts/verify_launch_desk_post_deploy.ps1` runs the production post-deploy backend/frontend verification sequence.
 - `scripts/deploy_launch_desk_cloud_run.ps1` builds and deploys the backend to Cloud Run from a clean `git archive` context.
