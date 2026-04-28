@@ -12,6 +12,7 @@ Launch Desk is a working launch-planning agent app for engineering teams. It tur
 - `scripts/verify_launch_desk_stream.py` posts to the local stream endpoint and confirms tool progress, model text delta, completion, and completion metadata.
 - `scripts/verify_launch_desk_local.ps1` runs the local packaging checks and can optionally start both dev servers for a live stream check.
 - `docs/launch_desk/.env.example` and `launch-desk-frontend/.env.local.example` document backend and frontend environment variables.
+- `docs/launch_desk/deployment_settings.md` documents CI, backend service, and frontend service settings.
 - `docs/launch_desk/production_runbook.md` contains the deployment, observability, rollback, and failure-response checklist.
 - `tests/test_launch_desk_tools.py`, `tests/test_launch_desk_routes.py`, and `tests/test_launch_desk_agent_contract.py` cover tool behavior, SSE route formatting, and agent event contracts.
 
@@ -120,8 +121,11 @@ The full check starts the backend on `5057` and the frontend on `3008` by defaul
 For deployment prep, follow:
 
 ```text
+docs/launch_desk/deployment_settings.md
 docs/launch_desk/production_runbook.md
 ```
+
+GitHub Actions runs the non-live Launch Desk CI workflow in `.github/workflows/launch-desk-ci.yml` on Launch Desk-owned path changes.
 
 ## Extending tools
 

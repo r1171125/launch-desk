@@ -12,6 +12,9 @@ $ErrorActionPreference = "Stop"
 $root = Split-Path -Parent $PSScriptRoot
 $frontendDir = Join-Path $root "launch-desk-frontend"
 $logDir = Join-Path $root ".launch_desk_logs"
+$frontendNextCli = Join-Path $frontendDir "node_modules\next\dist\bin\next"
+$workspaceNextCli = Join-Path $root "node_modules\next\dist\bin\next"
+$parentNextCli = Join-Path (Split-Path -Parent $root) "node_modules\next\dist\bin\next"
 
 function Invoke-Step {
     param(
@@ -64,6 +67,21 @@ if (-not (Test-Path $NodePath)) {
     $NodePath = "node"
 }
 
+function Resolve-NextCli {
+    if (Test-Path $frontendNextCli) {
+        return $frontendNextCli
+    }
+    if (Test-Path $workspaceNextCli) {
+        return $workspaceNextCli
+    }
+    if (Test-Path $parentNextCli) {
+        return $parentNextCli
+    }
+    throw "Could not find Next.js CLI. Run npm install from launch-desk-frontend or install Next in a parent workspace node_modules."
+}
+
+$nextCli = Resolve-NextCli
+
 if ((Test-Path (Join-Path $root $PythonPath)) -and -not $env:PYTHONPATH) {
     $env:PYTHONPATH = $PythonPath
 }
@@ -92,7 +110,7 @@ Invoke-Step "Launch Desk frontend build" {
     Push-Location $frontendDir
     try {
         Invoke-Native {
-            & $NodePath "..\node_modules\next\dist\bin\next" build
+            & $NodePath $nextCli build
         }
     } finally {
         Pop-Location
@@ -117,7 +135,7 @@ if ($StartServers) {
     Invoke-Step "Start Launch Desk frontend" {
         Start-Process `
             -FilePath $NodePath `
-            -ArgumentList @("..\node_modules\next\dist\bin\next", "dev", "-p", [string]$FrontendPort) `
+            -ArgumentList @($nextCli, "dev", "-p", [string]$FrontendPort) `
             -WorkingDirectory $frontendDir `
             -WindowStyle Hidden `
             -RedirectStandardOutput (Join-Path $logDir "frontend_$FrontendPort.out.log") `

@@ -50,6 +50,10 @@
 
 ## Deployment packaging
 
+- `.github/workflows/launch-desk-ci.yml` runs Launch Desk-only backend tests and frontend build checks on Launch Desk path changes.
+- `launch_desk/requirements.txt` defines backend runtime dependencies for standalone deployment.
+- `launch_desk/requirements-dev.txt` defines CI/test dependencies for Launch Desk only.
+- `docs/launch_desk/deployment_settings.md` defines backend/frontend service settings without binding deployment to the main site.
 - `docs/launch_desk/production_runbook.md` defines the isolated backend/frontend deployment boundary.
 - The runbook lists required backend and frontend environment variables.
 - The runbook includes pre-deployment checks, release steps, observability signals, rollback steps, and common failure responses.

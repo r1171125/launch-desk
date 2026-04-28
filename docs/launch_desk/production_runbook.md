@@ -36,6 +36,12 @@ Never put `OPENAI_API_KEY` in the frontend environment.
 
 ## Pre-Deployment Checks
 
+Confirm the GitHub Actions workflow passes:
+
+```text
+.github/workflows/launch-desk-ci.yml
+```
+
 Run these from the repository root:
 
 ```powershell
@@ -55,15 +61,16 @@ The stream verifier must see at least one `tool_progress`, one `text_delta`, and
 ## Release Procedure
 
 1. Confirm the deploy commit only changes Launch Desk-owned files.
-2. Build the frontend with the production `NEXT_PUBLIC_LAUNCH_DESK_API_BASE`.
-3. Deploy the backend with `OPENAI_API_KEY`, model settings, timeout, rate limit, and allowed origins.
-4. Hit `/api/launch-desk/health` and confirm:
+2. Confirm `docs/launch_desk/deployment_settings.md` matches the selected backend/frontend hosting targets.
+3. Build the frontend with the production `NEXT_PUBLIC_LAUNCH_DESK_API_BASE`.
+4. Deploy the backend with `OPENAI_API_KEY`, model settings, timeout, rate limit, and allowed origins.
+5. Hit `/api/launch-desk/health` and confirm:
    - `ok` is `true`
    - `openai_api_key_configured` is `true`
    - `model` is expected
    - `request_timeout_seconds` and `rate_limit_per_minute` match deployment settings
-5. Run a streamed POST verification from the deployment network if possible.
-6. Open the frontend and run the sample brief. Confirm tool progress, streamed text, run completion, and Markdown/JSON export buttons.
+6. Run a streamed POST verification from the deployment network if possible.
+7. Open the frontend and run the sample brief. Confirm tool progress, streamed text, run completion, and Markdown/JSON export buttons.
 
 ## Observability
 
