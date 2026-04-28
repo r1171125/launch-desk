@@ -61,7 +61,7 @@ The stream verifier must see at least one `tool_progress`, one `text_delta`, and
 ## Release Procedure
 
 1. Confirm the deploy commit only changes Launch Desk-owned files.
-2. Confirm `docs/launch_desk/deployment_settings.md` matches the selected backend/frontend hosting targets.
+2. Confirm `docs/launch_desk/deployment_settings.md` and `docs/launch_desk/deploy_cloud_run_vercel.md` match the selected backend/frontend hosting targets.
 3. Build the frontend with the production `NEXT_PUBLIC_LAUNCH_DESK_API_BASE`.
 4. Deploy the backend with `OPENAI_API_KEY`, model settings, timeout, rate limit, and allowed origins.
 5. Hit `/api/launch-desk/health` and confirm:

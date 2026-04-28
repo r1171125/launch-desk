@@ -9,8 +9,13 @@ website multi-LLM selector.
 - Backend package: `launch_desk/`
 - Backend entrypoint: `scripts/run_launch_desk_backend.py`
 - Frontend app: `launch-desk-frontend/`
+- Backend Dockerfile: `deploy/cloud-run/backend.Dockerfile`
+- Backend Cloud Build config: `deploy/cloud-run/cloudbuild.backend.yaml`
+- Cloud Run deploy helper: `scripts/deploy_launch_desk_cloud_run.ps1`
+- Vercel config: `launch-desk-frontend/vercel.json`
 - CI workflow: `.github/workflows/launch-desk-ci.yml`
 - Production checklist: `docs/launch_desk/production_runbook.md`
+- Cloud Run and Vercel deployment guide: `docs/launch_desk/deploy_cloud_run_vercel.md`
 
 ## CI Defaults
 
@@ -30,6 +35,12 @@ Do not add a real OpenAI key to CI unless you intentionally create a separate
 live smoke workflow with explicit budget and rate-limit controls.
 
 ## Backend Service
+
+Cloud Run backend container:
+
+```text
+deploy/cloud-run/backend.Dockerfile
+```
 
 Install command:
 
@@ -119,6 +130,12 @@ commands. Keep the OpenAI key only on the backend Cloud Run service.
 
 For Vercel-style frontend hosting, deploy `launch-desk-frontend/` as the project
 root and point `NEXT_PUBLIC_LAUNCH_DESK_API_BASE` at the backend service URL.
+
+For the default Cloud Run plus Vercel path, follow:
+
+```text
+docs/launch_desk/deploy_cloud_run_vercel.md
+```
 
 ## Release Gate
 

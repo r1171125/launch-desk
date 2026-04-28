@@ -51,9 +51,14 @@
 ## Deployment packaging
 
 - `.github/workflows/launch-desk-ci.yml` runs Launch Desk-only backend tests and frontend build checks on Launch Desk path changes.
+- `deploy/cloud-run/backend.Dockerfile` builds only the Launch Desk backend runtime image.
+- `deploy/cloud-run/cloudbuild.backend.yaml` builds the backend image from the Cloud Run Dockerfile.
+- `scripts/deploy_launch_desk_cloud_run.ps1` creates a clean deploy context from `git archive HEAD`.
+- `launch-desk-frontend/vercel.json` defines the Vercel frontend build/install settings.
 - `launch_desk/requirements.txt` defines backend runtime dependencies for standalone deployment.
 - `launch_desk/requirements-dev.txt` defines CI/test dependencies for Launch Desk only.
 - `docs/launch_desk/deployment_settings.md` defines backend/frontend service settings without binding deployment to the main site.
+- `docs/launch_desk/deploy_cloud_run_vercel.md` documents the Cloud Run backend and Vercel frontend deployment sequence.
 - `docs/launch_desk/production_runbook.md` defines the isolated backend/frontend deployment boundary.
 - The runbook lists required backend and frontend environment variables.
 - The runbook includes pre-deployment checks, release steps, observability signals, rollback steps, and common failure responses.

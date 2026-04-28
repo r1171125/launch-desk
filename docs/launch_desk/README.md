@@ -11,8 +11,12 @@ Launch Desk is a working launch-planning agent app for engineering teams. It tur
 - `scripts/run_launch_desk_backend.py` starts the lightweight Flask backend for local Launch Desk development.
 - `scripts/verify_launch_desk_stream.py` posts to the local stream endpoint and confirms tool progress, model text delta, completion, and completion metadata.
 - `scripts/verify_launch_desk_local.ps1` runs the local packaging checks and can optionally start both dev servers for a live stream check.
+- `scripts/deploy_launch_desk_cloud_run.ps1` builds and deploys the backend to Cloud Run from a clean `git archive` context.
+- `deploy/cloud-run/backend.Dockerfile` and `deploy/cloud-run/cloudbuild.backend.yaml` define the Cloud Run backend image build.
+- `launch-desk-frontend/vercel.json` defines the Vercel frontend build settings.
 - `docs/launch_desk/.env.example` and `launch-desk-frontend/.env.local.example` document backend and frontend environment variables.
 - `docs/launch_desk/deployment_settings.md` documents CI, backend service, and frontend service settings.
+- `docs/launch_desk/deploy_cloud_run_vercel.md` contains the Cloud Run backend and Vercel frontend deployment flow.
 - `docs/launch_desk/production_runbook.md` contains the deployment, observability, rollback, and failure-response checklist.
 - `tests/test_launch_desk_tools.py`, `tests/test_launch_desk_routes.py`, and `tests/test_launch_desk_agent_contract.py` cover tool behavior, SSE route formatting, and agent event contracts.
 
@@ -122,6 +126,7 @@ For deployment prep, follow:
 
 ```text
 docs/launch_desk/deployment_settings.md
+docs/launch_desk/deploy_cloud_run_vercel.md
 docs/launch_desk/production_runbook.md
 ```
 
