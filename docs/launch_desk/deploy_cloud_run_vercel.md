@@ -49,16 +49,13 @@ trims surrounding whitespace at runtime as a defensive safeguard.
 Current production note:
 
 ```text
-launch-desk-backend currently reads OPENAI_API_KEY:latest.
+launch-desk-backend currently reads launch-desk-openai-api-key:latest.
 ```
 
-That shared secret was used after rotating the exposed OpenAI key because the
-rotated key was already available as `OPENAI_API_KEY` version 4. This is
-verified and operational, but it is less isolated than the recommended
-`launch-desk-openai-api-key` setup. If production should return to full Launch
-Desk isolation, add the rotated key to `launch-desk-openai-api-key`, then
-redeploy or update Cloud Run to point `OPENAI_API_KEY` back to
-`launch-desk-openai-api-key:latest`.
+During key rotation, production temporarily used the shared `OPENAI_API_KEY`
+secret because the rotated key was already available there as version 4. The
+rotated key was then copied into the dedicated `launch-desk-openai-api-key`
+secret as version 3, and Cloud Run was switched back to the dedicated secret.
 
 ## 3. Deploy Backend
 
@@ -80,20 +77,20 @@ Cloud Run runtime service account. By default, that runtime identity is the
 Compute Engine default service account for the project. To use a dedicated
 service account, pass `-RuntimeServiceAccount`.
 
-To match the current production shared-secret state without rebuilding the image,
-update the running Cloud Run service with:
+To match the current production isolated-secret state without rebuilding the
+image, update the running Cloud Run service with:
 
 ```powershell
 gcloud run services update launch-desk-backend `
   --project "my-ai-website-430003" `
   --region "asia-east1" `
-  --update-secrets "OPENAI_API_KEY=OPENAI_API_KEY:latest"
+  --update-secrets "OPENAI_API_KEY=launch-desk-openai-api-key:latest"
 ```
 
 The verified production revision after this update was:
 
 ```text
-launch-desk-backend-00005-vnv
+launch-desk-backend-00006-ppv
 ```
 
 After deployment, capture the backend URL:

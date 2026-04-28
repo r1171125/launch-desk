@@ -64,21 +64,22 @@ OPENAI_API_KEY
 Current production secret reference:
 
 ```text
-OPENAI_API_KEY=OPENAI_API_KEY:latest
-```
-
-The current production Cloud Run backend uses the shared `OPENAI_API_KEY`
-Secret Manager secret. The latest verified shared version was version 4. This
-state was chosen as an operational recovery path after key rotation.
-
-Preferred isolated secret reference:
-
-```text
 OPENAI_API_KEY=launch-desk-openai-api-key:latest
 ```
 
-Use the isolated secret once the rotated key is available there and the backend
-has been re-verified.
+The current production Cloud Run backend uses the dedicated
+`launch-desk-openai-api-key` Secret Manager secret. The latest verified
+dedicated version was version 3. This restores Launch Desk secret isolation
+after a temporary shared-secret recovery path.
+
+Temporary recovery secret reference:
+
+```text
+OPENAI_API_KEY=OPENAI_API_KEY:latest
+```
+
+Use the shared `OPENAI_API_KEY` secret only as a temporary recovery path when the
+dedicated Launch Desk secret is not yet updated.
 
 Recommended environment:
 
@@ -111,9 +112,9 @@ Current production backend snapshot:
 service=launch-desk-backend
 project=my-ai-website-430003
 region=asia-east1
-revision=launch-desk-backend-00005-vnv
+revision=launch-desk-backend-00006-ppv
 url=https://launch-desk-backend-6gtyc6yuoq-de.a.run.app
-secret_ref=OPENAI_API_KEY:latest
+secret_ref=launch-desk-openai-api-key:latest
 allowed_origin=https://launch-desk-orcin.vercel.app
 ```
 

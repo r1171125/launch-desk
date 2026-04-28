@@ -132,23 +132,43 @@ OPENAI_API_KEY version 4 enabled
 created 2026-04-28T18:19:01
 ```
 
-Launch Desk Cloud Run was then updated to read the shared secret reference:
+Launch Desk Cloud Run was temporarily updated to read the shared secret
+reference:
 
 ```text
 OPENAI_API_KEY=OPENAI_API_KEY:latest
 ```
 
-Revision serving after the secret reference update:
+Revision serving after the temporary shared-secret update:
 
 ```text
 launch-desk-backend-00005-vnv
 ```
 
-This is the current production state. It is behavior-compatible and verified,
-but it reduces isolation because Launch Desk now shares the same OpenAI key
-secret as the main site. The preferred long-term state is to add the rotated key
-to the dedicated Launch Desk secret `launch-desk-openai-api-key` and switch
-Cloud Run back to that dedicated secret.
+That state was behavior-compatible and verified, but it reduced isolation
+because Launch Desk shared the same OpenAI key secret as the main site.
+
+Isolation was then restored by copying the rotated key into the dedicated
+Launch Desk secret:
+
+```text
+launch-desk-openai-api-key version 3 enabled
+created 2026-04-28T18:47:09
+```
+
+Current production secret reference:
+
+```text
+OPENAI_API_KEY=launch-desk-openai-api-key:latest
+```
+
+Current production revision after restoring the dedicated secret:
+
+```text
+launch-desk-backend-00006-ppv
+```
+
+This is the current production state and restores Launch Desk secret isolation.
 
 ## Backend Stream Verification
 
@@ -201,6 +221,20 @@ tool_count=5
 text_chars=6018
 ```
 
+After isolation was restored with `launch-desk-openai-api-key:latest`, the
+backend stream verifier was re-run successfully.
+
+Complete event metadata after restoring isolation:
+
+```text
+model=gpt-5.4-mini
+trace_id=trace_256ce0eded6048aaaa9d527cb735e898
+duration_ms=17236
+timeout_seconds=120
+tool_count=5
+text_chars=5365
+```
+
 ## Frontend End-to-End Verification
 
 The production frontend was opened at:
@@ -241,6 +275,19 @@ frontend verification was re-run:
 - No visible frontend error was observed.
 - No app-domain console warning or error was observed.
 
+After isolation was restored with `launch-desk-openai-api-key:latest`,
+production frontend verification was re-run again:
+
+- `Load sample` succeeded.
+- `Run launch plan` succeeded.
+- Agent stream reached `Complete`.
+- The run produced a `Prioritized plan`.
+- Tool calls and tool completions were observed for all expected Launch Desk
+  tools.
+- Readiness displayed `83%`.
+- No visible frontend error was observed.
+- No app-domain console warning or error was observed.
+
 ## Verification Caveats
 
 One PowerShell `Invoke-WebRequest` OPTIONS probe from the local sandbox failed
@@ -265,15 +312,11 @@ Completed follow-up:
 3. Update Launch Desk Cloud Run to read `OPENAI_API_KEY:latest`.
 4. Re-run backend stream verification.
 5. Re-run frontend production verification.
-
-Remaining security/operations follow-up:
-
-1. Decide whether Launch Desk should keep using the shared `OPENAI_API_KEY`
-   secret or return to a dedicated secret.
-2. If returning to isolation, add the rotated key to
-   `launch-desk-openai-api-key` and switch Cloud Run back to
-   `launch-desk-openai-api-key:latest`.
-3. Re-run backend and frontend verification after that switch.
+6. Copy the rotated key into the dedicated `launch-desk-openai-api-key` secret
+   as version 3.
+7. Switch Cloud Run back to `launch-desk-openai-api-key:latest`.
+8. Re-run backend stream verification.
+9. Re-run frontend production verification.
 
 Do not paste the key into docs, logs, shell history, issue comments, or PR
 descriptions.
@@ -282,8 +325,8 @@ descriptions.
 
 Phase 1.9 should focus on production hardening without changing behavior:
 
-- Decide whether to keep the shared `OPENAI_API_KEY` secret or restore the
-  dedicated Launch Desk secret.
+- Keep the dedicated `launch-desk-openai-api-key` secret as the production
+  source for Launch Desk.
 - Add a small post-deploy checklist that runs backend stream verification and
   browser frontend verification.
 - Decide whether to add Vercel deployment status notes to CI or keep them as a
