@@ -116,6 +116,40 @@ launch-desk-backend-00004-nkc
 The CORS update was applied with `gcloud run services update`; no new backend
 image build was required.
 
+## Production Secret Update
+
+After the original Phase 1.8 frontend/backend connection, the exposed OpenAI key
+was rotated in the shared Secret Manager secret:
+
+```text
+OPENAI_API_KEY
+```
+
+The active shared secret version observed during verification was:
+
+```text
+OPENAI_API_KEY version 4 enabled
+created 2026-04-28T18:19:01
+```
+
+Launch Desk Cloud Run was then updated to read the shared secret reference:
+
+```text
+OPENAI_API_KEY=OPENAI_API_KEY:latest
+```
+
+Revision serving after the secret reference update:
+
+```text
+launch-desk-backend-00005-vnv
+```
+
+This is the current production state. It is behavior-compatible and verified,
+but it reduces isolation because Launch Desk now shares the same OpenAI key
+secret as the main site. The preferred long-term state is to add the rotated key
+to the dedicated Launch Desk secret `launch-desk-openai-api-key` and switch
+Cloud Run back to that dedicated secret.
+
 ## Backend Stream Verification
 
 The deployed backend stream endpoint was verified with:
@@ -153,6 +187,20 @@ Observed generated text began with:
 ## Prioritized plan
 ```
 
+After the secret reference was switched to `OPENAI_API_KEY:latest`, the backend
+stream verifier was re-run successfully.
+
+Complete event metadata after the switch:
+
+```text
+model=gpt-5.4-mini
+trace_id=trace_308a1c529d8e455ab179fa0e7f9f67af
+duration_ms=14783
+timeout_seconds=120
+tool_count=5
+text_chars=6018
+```
+
 ## Frontend End-to-End Verification
 
 The production frontend was opened at:
@@ -180,6 +228,19 @@ Verified flow:
 - No console warning or error was observed for the deployed app domain
   `launch-desk-orcin.vercel.app`.
 
+After the secret reference was switched to `OPENAI_API_KEY:latest`, production
+frontend verification was re-run:
+
+- `Load sample` succeeded.
+- `Run launch plan` succeeded.
+- Agent stream reached `Complete`.
+- The run produced a `Prioritized plan`.
+- Tool calls and tool completions were observed for all expected Launch Desk
+  tools.
+- Readiness displayed `83%`.
+- No visible frontend error was observed.
+- No app-domain console warning or error was observed.
+
 ## Verification Caveats
 
 One PowerShell `Invoke-WebRequest` OPTIONS probe from the local sandbox failed
@@ -197,15 +258,22 @@ Earlier Cloud Run logs exposed the OpenAI API key before the backend runtime was
 hardened to trim secret whitespace. The runtime has been fixed, but the exposed
 key should still be rotated.
 
-Recommended follow-up:
+Completed follow-up:
 
 1. Rotate the OpenAI API key in the OpenAI dashboard.
-2. Add the new key as a new Secret Manager version for
-   `launch-desk-openai-api-key`.
-3. Redeploy or restart the Cloud Run service so it reads the latest secret
-   version.
+2. Confirm the rotated key is available as `OPENAI_API_KEY` version 4.
+3. Update Launch Desk Cloud Run to read `OPENAI_API_KEY:latest`.
 4. Re-run backend stream verification.
 5. Re-run frontend production verification.
+
+Remaining security/operations follow-up:
+
+1. Decide whether Launch Desk should keep using the shared `OPENAI_API_KEY`
+   secret or return to a dedicated secret.
+2. If returning to isolation, add the rotated key to
+   `launch-desk-openai-api-key` and switch Cloud Run back to
+   `launch-desk-openai-api-key:latest`.
+3. Re-run backend and frontend verification after that switch.
 
 Do not paste the key into docs, logs, shell history, issue comments, or PR
 descriptions.
@@ -214,7 +282,8 @@ descriptions.
 
 Phase 1.9 should focus on production hardening without changing behavior:
 
-- Rotate the OpenAI API key and re-verify.
+- Decide whether to keep the shared `OPENAI_API_KEY` secret or restore the
+  dedicated Launch Desk secret.
 - Add a small post-deploy checklist that runs backend stream verification and
   browser frontend verification.
 - Decide whether to add Vercel deployment status notes to CI or keep them as a

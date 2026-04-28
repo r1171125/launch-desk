@@ -18,7 +18,8 @@ main website multi-LLM selector.
 
 ## 2. Backend Secret
 
-Create or update the Cloud Run backend secret before deploying:
+Recommended isolated setup: create or update a dedicated Cloud Run backend
+secret before deploying:
 
 ```powershell
 $env:PROJECT_ID="your-google-cloud-project-id"
@@ -45,6 +46,20 @@ Remove-Item $tmp -Force
 Make sure the stored secret value has no trailing newline. The backend also
 trims surrounding whitespace at runtime as a defensive safeguard.
 
+Current production note:
+
+```text
+launch-desk-backend currently reads OPENAI_API_KEY:latest.
+```
+
+That shared secret was used after rotating the exposed OpenAI key because the
+rotated key was already available as `OPENAI_API_KEY` version 4. This is
+verified and operational, but it is less isolated than the recommended
+`launch-desk-openai-api-key` setup. If production should return to full Launch
+Desk isolation, add the rotated key to `launch-desk-openai-api-key`, then
+redeploy or update Cloud Run to point `OPENAI_API_KEY` back to
+`launch-desk-openai-api-key:latest`.
+
 ## 3. Deploy Backend
 
 From the repository root:
@@ -64,6 +79,22 @@ It also grants `roles/secretmanager.secretAccessor` on the backend secret to the
 Cloud Run runtime service account. By default, that runtime identity is the
 Compute Engine default service account for the project. To use a dedicated
 service account, pass `-RuntimeServiceAccount`.
+
+To match the current production shared-secret state without rebuilding the image,
+update the running Cloud Run service with:
+
+```powershell
+gcloud run services update launch-desk-backend `
+  --project "my-ai-website-430003" `
+  --region "asia-east1" `
+  --update-secrets "OPENAI_API_KEY=OPENAI_API_KEY:latest"
+```
+
+The verified production revision after this update was:
+
+```text
+launch-desk-backend-00005-vnv
+```
 
 After deployment, capture the backend URL:
 

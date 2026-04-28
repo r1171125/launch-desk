@@ -61,6 +61,25 @@ Required secret:
 OPENAI_API_KEY
 ```
 
+Current production secret reference:
+
+```text
+OPENAI_API_KEY=OPENAI_API_KEY:latest
+```
+
+The current production Cloud Run backend uses the shared `OPENAI_API_KEY`
+Secret Manager secret. The latest verified shared version was version 4. This
+state was chosen as an operational recovery path after key rotation.
+
+Preferred isolated secret reference:
+
+```text
+OPENAI_API_KEY=launch-desk-openai-api-key:latest
+```
+
+Use the isolated secret once the rotated key is available there and the backend
+has been re-verified.
+
 Recommended environment:
 
 ```text
@@ -85,6 +104,18 @@ and the expected model/runtime settings.
 The Cloud Run runtime service account must be able to read the backend secret.
 The deploy helper grants `roles/secretmanager.secretAccessor` on the configured
 secret to the runtime service account before deploying.
+
+Current production backend snapshot:
+
+```text
+service=launch-desk-backend
+project=my-ai-website-430003
+region=asia-east1
+revision=launch-desk-backend-00005-vnv
+url=https://launch-desk-backend-6gtyc6yuoq-de.a.run.app
+secret_ref=OPENAI_API_KEY:latest
+allowed_origin=https://launch-desk-orcin.vercel.app
+```
 
 The backend normalizes `OPENAI_API_KEY` by trimming surrounding whitespace before
 initializing the OpenAI client. This prevents copy/paste newlines in secret
