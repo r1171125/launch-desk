@@ -88,6 +88,7 @@ async def _stream_launch_desk_events_async(
     payload: LaunchDeskPayload,
     request_id: str,
 ) -> AsyncGenerator[dict[str, Any], None]:
+    normalize_openai_api_key_env()
     agents = _load_agents_sdk()
     ResponseTextDeltaEvent = _load_response_text_delta_event()
 
@@ -528,6 +529,14 @@ def _env_int(name: str, default: int, *, minimum: int, maximum: int) -> int:
     except ValueError:
         return default
     return max(minimum, min(maximum, value))
+
+
+def normalize_openai_api_key_env() -> str:
+    raw_value = os.getenv("OPENAI_API_KEY", "")
+    normalized = raw_value.strip()
+    if normalized != raw_value:
+        os.environ["OPENAI_API_KEY"] = normalized
+    return normalized
 
 
 def _log_observation(event_name: str, payload: dict[str, Any]) -> None:

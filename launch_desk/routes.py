@@ -10,7 +10,12 @@ from typing import Any
 
 from flask import Blueprint, Flask, Response, jsonify, request, stream_with_context
 
-from .agent import DEFAULT_MODEL, get_launch_desk_runtime_config, stream_launch_desk_events
+from .agent import (
+    DEFAULT_MODEL,
+    get_launch_desk_runtime_config,
+    normalize_openai_api_key_env,
+    stream_launch_desk_events,
+)
 from .payloads import LaunchDeskValidationError, normalize_launch_payload
 
 launch_desk_bp = Blueprint("launch_desk", __name__)
@@ -40,7 +45,7 @@ def launch_desk_health() -> Response:
             "ok": True,
             "app": "launch-desk",
             "model": runtime_config["model"],
-            "openai_api_key_configured": bool(os.getenv("OPENAI_API_KEY")),
+            "openai_api_key_configured": bool(normalize_openai_api_key_env()),
             "stream_bridge": "async-queue",
             "request_timeout_seconds": runtime_config["request_timeout_seconds"],
             "max_tokens": runtime_config["max_tokens"],
@@ -64,7 +69,7 @@ def launch_desk_stream() -> Response:
         )
         return jsonify({"ok": False, "error": str(exc)}), 400
 
-    if not os.getenv("OPENAI_API_KEY"):
+    if not normalize_openai_api_key_env():
         LOGGER.warning("launch_desk.missing_api_key")
         return (
             jsonify(

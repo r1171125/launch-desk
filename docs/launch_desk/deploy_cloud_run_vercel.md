@@ -27,14 +27,23 @@ $env:SECRET_NAME="launch-desk-openai-api-key"
 
 gcloud services enable run.googleapis.com cloudbuild.googleapis.com artifactregistry.googleapis.com secretmanager.googleapis.com --project $env:PROJECT_ID
 
-printf "replace-with-your-openai-api-key" | gcloud secrets create $env:SECRET_NAME --data-file=- --project $env:PROJECT_ID
+$tmp = [System.IO.Path]::GetTempFileName()
+[System.IO.File]::WriteAllText($tmp, "replace-with-your-openai-api-key", [System.Text.UTF8Encoding]::new($false))
+gcloud secrets create $env:SECRET_NAME --data-file=$tmp --project $env:PROJECT_ID
+Remove-Item $tmp -Force
 ```
 
 If the secret already exists, add a new version instead:
 
 ```powershell
-printf "replace-with-your-openai-api-key" | gcloud secrets versions add $env:SECRET_NAME --data-file=- --project $env:PROJECT_ID
+$tmp = [System.IO.Path]::GetTempFileName()
+[System.IO.File]::WriteAllText($tmp, "replace-with-your-openai-api-key", [System.Text.UTF8Encoding]::new($false))
+gcloud secrets versions add $env:SECRET_NAME --data-file=$tmp --project $env:PROJECT_ID
+Remove-Item $tmp -Force
 ```
+
+Make sure the stored secret value has no trailing newline. The backend also
+trims surrounding whitespace at runtime as a defensive safeguard.
 
 ## 3. Deploy Backend
 

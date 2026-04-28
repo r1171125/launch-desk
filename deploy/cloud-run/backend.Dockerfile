@@ -15,4 +15,4 @@ COPY scripts/run_launch_desk_backend.py /app/scripts/run_launch_desk_backend.py
 
 EXPOSE 8080
 
-CMD python scripts/run_launch_desk_backend.py --host 0.0.0.0 --port ${PORT}
+CMD exec gunicorn --bind 0.0.0.0:${PORT} --workers 1 --threads 8 --timeout 300 launch_desk.wsgi:app

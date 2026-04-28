@@ -86,6 +86,10 @@ The Cloud Run runtime service account must be able to read the backend secret.
 The deploy helper grants `roles/secretmanager.secretAccessor` on the configured
 secret to the runtime service account before deploying.
 
+The backend normalizes `OPENAI_API_KEY` by trimming surrounding whitespace before
+initializing the OpenAI client. This prevents copy/paste newlines in secret
+values from becoming invalid HTTP authorization headers.
+
 ## Frontend Service
 
 Set the deployment root directory to:

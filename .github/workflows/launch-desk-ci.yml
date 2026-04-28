@@ -61,6 +61,7 @@ jobs:
             launch_desk/payloads.py \
             launch_desk/routes.py \
             launch_desk/tools.py \
+            launch_desk/wsgi.py \
             scripts/run_launch_desk_backend.py \
             scripts/verify_launch_desk_stream.py \
             tests/test_launch_desk_agent_contract.py \

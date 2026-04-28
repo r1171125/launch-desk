@@ -1,8 +1,10 @@
 import asyncio
+import os
 
 from launch_desk.agent import (
     _build_launch_prompt,
     _classified_error_event,
+    normalize_openai_api_key_env,
     stream_launch_desk_events,
 )
 from launch_desk.payloads import LaunchDeskPayload
@@ -48,6 +50,13 @@ def test_classified_error_event_hides_raw_exception_details():
     assert event["trace_id"] == "trace-1"
     assert event["duration_ms"] == 123
     assert event["timeout_seconds"] == 45
+
+
+def test_openai_api_key_is_normalized_for_header_safety(monkeypatch):
+    monkeypatch.setenv("OPENAI_API_KEY", " test-key\r\n")
+
+    assert normalize_openai_api_key_env() == "test-key"
+    assert os.environ["OPENAI_API_KEY"] == "test-key"
 
 
 def test_stream_bridge_preserves_async_events(monkeypatch):
