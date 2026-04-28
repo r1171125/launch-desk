@@ -41,22 +41,33 @@ if (-not $ImageTag) {
 
 $image = "$Region-docker.pkg.dev/$ProjectId/$ArtifactRepository/${ServiceName}:$ImageTag"
 $context = Join-Path ([System.IO.Path]::GetTempPath()) "launch-desk-cloud-run-$sha"
+$archivePath = Join-Path ([System.IO.Path]::GetTempPath()) "launch-desk-cloud-run-$sha.tar"
 
 if (Test-Path $context) {
     Remove-Item $context -Recurse -Force
+}
+if (Test-Path $archivePath) {
+    Remove-Item $archivePath -Force
 }
 New-Item -ItemType Directory -Path $context | Out-Null
 
 Write-Host "Creating clean deploy context from git HEAD: $sha" -ForegroundColor Cyan
 Invoke-Native {
-    git -C $root archive --format=tar HEAD | tar -xf - -C $context
+    git -C $root archive --format=tar --output=$archivePath HEAD
+}
+Invoke-Native {
+    tar -xf $archivePath -C $context
 }
 
 Write-Host "Ensuring Artifact Registry repository exists: $ArtifactRepository" -ForegroundColor Cyan
+$previousErrorActionPreference = $ErrorActionPreference
+$ErrorActionPreference = "Continue"
 & gcloud artifacts repositories describe $ArtifactRepository `
     --project $ProjectId `
     --location $Region *> $null
-if ($LASTEXITCODE -ne 0) {
+$repositoryDescribeExitCode = $LASTEXITCODE
+$ErrorActionPreference = $previousErrorActionPreference
+if ($repositoryDescribeExitCode -ne 0) {
     Invoke-Native {
         gcloud artifacts repositories create $ArtifactRepository `
             --project $ProjectId `
