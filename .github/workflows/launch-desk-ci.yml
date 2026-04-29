@@ -58,8 +58,10 @@ jobs:
         run: |
           python -m py_compile \
             launch_desk/agent.py \
+            launch_desk/contracts.py \
             launch_desk/payloads.py \
             launch_desk/routes.py \
+            launch_desk/sample_briefs.py \
             launch_desk/tools.py \
             launch_desk/wsgi.py \
             scripts/run_launch_desk_backend.py \

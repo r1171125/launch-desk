@@ -10,6 +10,7 @@
 - The streamed API emits `status`, `tool_progress`, `text_delta`, `complete`, and `error` events as applicable.
 - A real local streamed POST receives at least one `tool_progress` event, one `text_delta` event, and one `complete` event.
 - The `complete` event includes model, trace id, duration, timeout, tool counts, and text character count.
+- The `complete` event includes the active launch plan template version and JSON export schema version.
 - Error events use user-facing error codes and messages instead of raw provider exception text.
 - Backend logs use `launch_desk.*` messages and avoid writing the full product brief.
 - The stream route returns a friendly `429` response with `Retry-After` when the Launch Desk rate limit is exceeded.
@@ -22,8 +23,9 @@
 - The agent transcript grows progressively as `text_delta` events arrive.
 - Stream parsing handles chunked SSE blocks and the final buffered event.
 - The right rail updates with readiness, tool progress, and owner checklist outputs when tool events complete.
-- Completed plans can be downloaded as Markdown.
-- Completed runs can be downloaded as JSON with compact event and completion metadata.
+- Completed plans can be copied or downloaded as Markdown.
+- Completed runs can be copied or downloaded as versioned JSON with inputs, tool outputs, run metadata, and detected sections.
+- The result area shows template version, schema version, output size, and recent copy/download status.
 - Desktop and mobile layouts remain readable without overlapping text or controls.
 
 ## Tool outputs
@@ -32,7 +34,8 @@
 - `check_launch_readiness` returns a score, status, rubric, gaps, and risk register.
 - `generate_owner_checklist` returns owner roles and actionable checks.
 - `draft_channel_copy` returns internal, customer email, changelog, and social copy drafts.
-- `missing_detail_questions` returns targeted follow-up questions when key launch details are absent.
+- `missing_detail_questions` returns prioritized follow-up questions with category, owner, blocker status, and reason.
+- Regression sample briefs cover beta API, admin reporting, and mobile onboarding launch scenarios.
 
 ## Local run checks
 
@@ -44,6 +47,7 @@
 - Backend server starts with `OPENAI_API_KEY` visible to that process.
 - Frontend server starts with `NEXT_PUBLIC_LAUNCH_DESK_API_BASE` pointing at the backend.
 - `/api/launch-desk/health` confirms whether the backend process sees `OPENAI_API_KEY`.
+- `/api/launch-desk/health` reports the active launch plan template version and JSON export schema version.
 - `scripts/verify_launch_desk_stream.py` passes against the local backend stream endpoint.
 - Browser testing confirms the UI can submit a launch brief and render streamed output.
 - Browser testing confirms the Markdown and JSON export buttons become available after streamed output appears.

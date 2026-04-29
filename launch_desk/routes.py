@@ -16,6 +16,7 @@ from .agent import (
     normalize_openai_api_key_env,
     stream_launch_desk_events,
 )
+from .contracts import LAUNCH_PLAN_JSON_EXPORT_SCHEMA
 from .payloads import LaunchDeskValidationError, normalize_launch_payload
 
 launch_desk_bp = Blueprint("launch_desk", __name__)
@@ -47,6 +48,9 @@ def launch_desk_health() -> Response:
             "model": runtime_config["model"],
             "openai_api_key_configured": bool(normalize_openai_api_key_env()),
             "stream_bridge": "async-queue",
+            "template_version": runtime_config["template_version"],
+            "export_schema_version": runtime_config["export_schema_version"],
+            "export_schema": LAUNCH_PLAN_JSON_EXPORT_SCHEMA,
             "request_timeout_seconds": runtime_config["request_timeout_seconds"],
             "max_tokens": runtime_config["max_tokens"],
             "model_retries": runtime_config["model_retries"],

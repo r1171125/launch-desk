@@ -10,6 +10,12 @@ import time
 from collections.abc import AsyncGenerator, Generator
 from typing import Any
 
+from .contracts import (
+    FINAL_RESPONSE_SECTIONS,
+    FOLLOW_UP_MODE,
+    JSON_EXPORT_SCHEMA_VERSION,
+    LAUNCH_PLAN_TEMPLATE_VERSION,
+)
 from .payloads import LaunchDeskPayload
 from .tools import (
     check_launch_readiness_impl,
@@ -33,15 +39,14 @@ DEFAULT_REQUEST_TIMEOUT_SECONDS = 120
 LOGGER = logging.getLogger(__name__)
 
 FINAL_RESPONSE_CONTRACT = (
+    f"Use launch plan template version {LAUNCH_PLAN_TEMPLATE_VERSION}. "
     "Write the final answer in Markdown with these exact top-level sections, in this order:\n"
-    "## Prioritized plan\n"
-    "## Risk register\n"
-    "## Owner checklist\n"
-    "## Launch copy suggestions\n"
-    "## Follow-up questions\n"
+    f"{chr(10).join(FINAL_RESPONSE_SECTIONS)}\n"
+    f"Immediately under ## Prioritized plan, include `Template version: {LAUNCH_PLAN_TEMPLATE_VERSION}`. "
     "Each section must be concrete and launch-ready. Include owners and due hints in the plan, "
     "severity/mitigation/owner in the risk register, role-based checklists, channel-specific copy, "
-    "and only practical follow-up questions for missing details."
+    f"and practical follow-up questions using the {FOLLOW_UP_MODE} mode. "
+    "For follow-up questions, separate critical blockers from recommended clarifications."
 )
 
 
@@ -129,6 +134,8 @@ async def _stream_launch_desk_events_async(
         "request_id": request_id,
         "trace_id": trace_id,
         "model": model,
+        "template_version": LAUNCH_PLAN_TEMPLATE_VERSION,
+        "export_schema_version": JSON_EXPORT_SCHEMA_VERSION,
         "timeout_seconds": timeout_seconds,
         "message": "Launch Desk agent initialized.",
     }
@@ -214,6 +221,8 @@ async def _stream_launch_desk_events_async(
             "request_id": request_id,
             "trace_id": trace_id,
             "model": model,
+            "template_version": LAUNCH_PLAN_TEMPLATE_VERSION,
+            "export_schema_version": JSON_EXPORT_SCHEMA_VERSION,
             "saw_tool_progress": tool_seen,
             "saw_text_delta": text_seen,
             "duration_ms": _elapsed_ms(started_at),
@@ -550,6 +559,8 @@ def _log_observation(event_name: str, payload: dict[str, Any]) -> None:
 def get_launch_desk_runtime_config() -> dict[str, Any]:
     return {
         "model": os.getenv("LAUNCH_DESK_MODEL", DEFAULT_MODEL),
+        "template_version": LAUNCH_PLAN_TEMPLATE_VERSION,
+        "export_schema_version": JSON_EXPORT_SCHEMA_VERSION,
         "max_tokens": _env_int(
             "LAUNCH_DESK_MAX_TOKENS",
             DEFAULT_MAX_TOKENS,

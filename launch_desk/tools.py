@@ -3,6 +3,8 @@ from __future__ import annotations
 from datetime import UTC, date, datetime
 from typing import Any
 
+from .contracts import FOLLOW_UP_MODE
+
 
 def extract_launch_tasks_impl(
     product_brief: str,
@@ -226,21 +228,87 @@ def missing_detail_questions_impl(
     """Return follow-up questions for missing launch details."""
 
     text = " ".join([product_brief, audience, constraints, available_assets]).lower()
-    questions: list[str] = []
+    questions: list[dict[str, Any]] = []
     if not _contains_any(text, ["metric", "kpi", "success", "activation", "retention"]):
-        questions.append("What launch success metric should determine whether this worked?")
+        questions.append(
+            _follow_up_question(
+                priority="P0",
+                category="Success metrics",
+                question="What launch success metric should determine whether this worked?",
+                why_it_matters="The launch plan cannot define go/no-go or post-launch review criteria without a measurable outcome.",
+                suggested_owner="Product",
+                blocks_launch=True,
+            )
+        )
     if not _contains_any(text, ["rollback", "flag", "gradual", "ramp", "kill switch"]):
-        questions.append("Is there a feature flag, rollback path, or phased rollout plan?")
+        questions.append(
+            _follow_up_question(
+                priority="P0",
+                category="Release safety",
+                question="Is there a feature flag, rollback path, or phased rollout plan?",
+                why_it_matters="Engineering needs a safe release control before launch-day issues appear.",
+                suggested_owner="Engineering",
+                blocks_launch=True,
+            )
+        )
     if not _contains_any(text, ["support", "faq", "customer success", "known issue"]):
-        questions.append("What should Support say if customers hit a launch-day issue?")
+        questions.append(
+            _follow_up_question(
+                priority="P1",
+                category="Support readiness",
+                question="What should Support say if customers hit a launch-day issue?",
+                why_it_matters="Support needs approved language and escalation paths before customers ask for help.",
+                suggested_owner="Support or customer success",
+                blocks_launch=False,
+            )
+        )
     if not _contains_any(text, ["doc", "demo", "screenshot", "video", "email", "asset"]):
-        questions.append("Which launch assets are approved versus still in progress?")
+        questions.append(
+            _follow_up_question(
+                priority="P1",
+                category="Asset readiness",
+                question="Which launch assets are approved versus still in progress?",
+                why_it_matters="Launch copy should only make claims that approved assets can support.",
+                suggested_owner="Marketing or product",
+                blocks_launch=False,
+            )
+        )
     if _days_until(launch_date) < 7:
-        questions.append("What scope can be cut if the team cannot hit the launch date safely?")
+        questions.append(
+            _follow_up_question(
+                priority="P0",
+                category="Date risk",
+                question="What scope can be cut if the team cannot hit the launch date safely?",
+                why_it_matters="A near-term launch needs an explicit cut line to avoid unsafe last-minute work.",
+                suggested_owner="Launch captain",
+                blocks_launch=True,
+            )
+        )
 
     return {
+        "mode": FOLLOW_UP_MODE,
         "questions": questions,
         "missing_count": len(questions),
+        "critical_count": sum(1 for question in questions if question["blocks_launch"]),
+    }
+
+
+def _follow_up_question(
+    *,
+    priority: str,
+    category: str,
+    question: str,
+    why_it_matters: str,
+    suggested_owner: str,
+    blocks_launch: bool,
+) -> dict[str, Any]:
+    return {
+        "priority": priority,
+        "category": category,
+        "question": question,
+        "why_it_matters": why_it_matters,
+        "suggested_owner": suggested_owner,
+        "blocks_launch": blocks_launch,
     }
 
 

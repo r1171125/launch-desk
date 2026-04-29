@@ -90,6 +90,8 @@ Invoke-Step "Python syntax check" {
     Invoke-Native {
         python -m py_compile `
             launch_desk\agent.py `
+            launch_desk\contracts.py `
+            launch_desk\sample_briefs.py `
             launch_desk\wsgi.py `
             launch_desk\routes.py `
             scripts\verify_launch_desk_stream.py `

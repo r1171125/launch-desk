@@ -5,6 +5,8 @@ from launch_desk.tools import (
     generate_owner_checklist_impl,
     missing_detail_questions_impl,
 )
+from launch_desk.contracts import FOLLOW_UP_MODE
+from launch_desk.sample_briefs import SAMPLE_BRIEFS
 
 
 def sample_payload():
@@ -59,5 +61,32 @@ def test_missing_questions_drop_when_inputs_include_controls():
     payload = sample_payload()
     result = missing_detail_questions_impl(**payload)
 
+    assert result["mode"] == FOLLOW_UP_MODE
     assert isinstance(result["questions"], list)
     assert result["missing_count"] == len(result["questions"])
+
+
+def test_missing_questions_are_structured_when_inputs_are_incomplete():
+    result = missing_detail_questions_impl(
+        product_brief="Launch a new onboarding flow for mobile users.",
+        audience="Mobile users",
+        launch_date="2026-05-01",
+        constraints="No explicit constraints provided.",
+        available_assets="No assets listed yet.",
+    )
+
+    assert result["mode"] == FOLLOW_UP_MODE
+    assert result["critical_count"] >= 1
+    assert all("question" in item for item in result["questions"])
+    assert all("suggested_owner" in item for item in result["questions"])
+    assert any(item["blocks_launch"] for item in result["questions"])
+
+
+def test_sample_briefs_are_valid_regression_fixtures():
+    assert len(SAMPLE_BRIEFS) >= 3
+    for brief in SAMPLE_BRIEFS:
+        assert len(brief["productBrief"]) >= 40
+        assert brief["audience"]
+        assert brief["launchDate"]
+        assert brief["constraints"]
+        assert brief["availableAssets"]

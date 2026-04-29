@@ -1,16 +1,15 @@
 import Head from "next/head";
 import { useMemo, useState } from "react";
+import {
+  JSON_EXPORT_SCHEMA_VERSION,
+  LAUNCH_PLAN_TEMPLATE_VERSION,
+  buildLaunchDeskExport,
+  findLastEvent,
+  latestToolOutput
+} from "../utils/launchDeskExport";
+import { sampleBriefs } from "../utils/sampleBriefs";
 
 const API_BASE = process.env.NEXT_PUBLIC_LAUNCH_DESK_API_BASE || "http://127.0.0.1:5057";
-
-const sampleBrief = {
-  productBrief:
-    "Launch a beta API for engineering managers that turns raw release notes into customer-ready rollout plans, risk summaries, and channel-specific launch copy.",
-  audience: "Engineering managers and product leads at B2B SaaS companies",
-  launchDate: "2026-05-20",
-  constraints: "Beta cohort only, legal review required, rollback through feature flags.",
-  availableAssets: "API docs draft, product screenshots, demo recording, support FAQ outline."
-};
 
 const initialForm = {
   productBrief: "",
@@ -34,39 +33,48 @@ const ERROR_HELP = {
 
 export default function LaunchDesk() {
   const [form, setForm] = useState(initialForm);
+  const [sampleId, setSampleId] = useState(sampleBriefs[0].id);
   const [events, setEvents] = useState([]);
   const [draft, setDraft] = useState("");
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState("");
+  const [resultNotice, setResultNotice] = useState("");
 
   const toolEvents = useMemo(
     () => events.filter((event) => event.type === "tool_progress"),
     [events]
   );
-  const completeEvent = useMemo(
-    () => events.findLast ? events.findLast((event) => event.type === "complete") : [...events].reverse().find((event) => event.type === "complete"),
-    [events]
-  );
+  const completeEvent = useMemo(() => findLastEvent(events, "complete"), [events]);
 
   const readinessOutput = useMemo(() => {
-    const completed = toolEvents.find(
-      (event) => event.status === "completed" && event.tool === "check_launch_readiness"
-    );
-    return completed?.output || null;
-  }, [toolEvents]);
+    return latestToolOutput(events, "check_launch_readiness");
+  }, [events]);
 
   const latestChecklist = useMemo(() => {
-    const completed = toolEvents.find(
-      (event) => event.status === "completed" && event.tool === "generate_owner_checklist"
-    );
-    return completed?.output || null;
-  }, [toolEvents]);
+    return latestToolOutput(events, "generate_owner_checklist");
+  }, [events]);
+
+  const followUpOutput = useMemo(() => {
+    return latestToolOutput(events, "missing_detail_questions");
+  }, [events]);
+
+  const structuredExport = useMemo(() => {
+    return buildLaunchDeskExport({ form, draft, events });
+  }, [form, draft, events]);
+
+  const runStateLabel = isRunning ? "Streaming" : completeEvent ? "Complete" : draft ? "Drafting" : "Idle";
+  const responseStatus = draft
+    ? completeEvent
+      ? `Ready for export - ${structuredExport.outputs.detected_sections.length}/5 sections`
+      : "Streaming output"
+    : "Waiting for output";
 
   async function runAgent() {
     setIsRunning(true);
     setError("");
     setEvents([]);
     setDraft("");
+    setResultNotice("");
 
     try {
       const response = await fetch(`${API_BASE}/api/launch-desk/stream`, {
@@ -122,41 +130,44 @@ export default function LaunchDesk() {
   }
 
   function loadSample() {
-    setForm(sampleBrief);
+    const selected = sampleBriefs.find((sample) => sample.id === sampleId) || sampleBriefs[0];
+    setForm({
+      productBrief: selected.productBrief,
+      audience: selected.audience,
+      launchDate: selected.launchDate,
+      constraints: selected.constraints,
+      availableAssets: selected.availableAssets
+    });
     setError("");
+    setResultNotice(`Loaded sample: ${selected.label}`);
   }
 
   function downloadMarkdown() {
     if (!draft) return;
     downloadText("launch-desk-plan.md", draft, "text/markdown;charset=utf-8");
+    setResultNotice("Markdown downloaded.");
   }
 
   function downloadJson() {
     if (!draft) return;
     downloadText(
       "launch-desk-run.json",
-      JSON.stringify(
-        {
-          exportedAt: new Date().toISOString(),
-          form,
-          generatedPlan: draft,
-          completeEvent: completeEvent || null,
-          events: events.map((event) => ({
-            type: event.type,
-            status: event.status,
-            tool: event.tool,
-            model: event.model,
-            trace_id: event.trace_id,
-            duration_ms: event.duration_ms,
-            tool_count: event.tool_count,
-            text_char_count: event.text_char_count
-          }))
-        },
-        null,
-        2
-      ),
+      JSON.stringify(structuredExport, null, 2),
       "application/json;charset=utf-8"
     );
+    setResultNotice(`JSON downloaded as ${structuredExport.schema_version}.`);
+  }
+
+  async function copyMarkdown() {
+    if (!draft) return;
+    await copyText(draft);
+    setResultNotice("Markdown copied.");
+  }
+
+  async function copyJson() {
+    if (!draft) return;
+    await copyText(JSON.stringify(structuredExport, null, 2));
+    setResultNotice(`JSON copied as ${structuredExport.schema_version}.`);
   }
 
   const canRun = form.productBrief.trim().length >= 40 && form.audience && form.launchDate;
@@ -190,6 +201,17 @@ export default function LaunchDesk() {
               Load sample
             </button>
           </div>
+
+          <label className="fieldGroup compactField">
+            <span>Sample brief</span>
+            <select value={sampleId} onChange={(event) => setSampleId(event.target.value)}>
+              {sampleBriefs.map((sample) => (
+                <option value={sample.id} key={sample.id}>
+                  {sample.label}
+                </option>
+              ))}
+            </select>
+          </label>
 
           <label className="fieldGroup">
             <span>Product brief</span>
@@ -268,7 +290,7 @@ export default function LaunchDesk() {
               <p>Tool calls and model text stream through the same API route.</p>
             </div>
             <span className={isRunning ? "stateChip running" : "stateChip"}>
-              {isRunning ? "Streaming" : completeEvent ? "Complete" : "Idle"}
+              {runStateLabel}
             </span>
           </div>
 
@@ -294,9 +316,15 @@ export default function LaunchDesk() {
             <div className="responseHeader">
               <div className="responseTitle">
                 <span>Generated release plan</span>
-                <span>{draft.length} chars</span>
+                <span>{responseStatus}</span>
               </div>
               <div className="responseActions" aria-label="Export generated release plan">
+                <button type="button" disabled={!draft} onClick={copyMarkdown}>
+                  Copy MD
+                </button>
+                <button type="button" disabled={!draft} onClick={copyJson}>
+                  Copy JSON
+                </button>
                 <button type="button" disabled={!draft} onClick={downloadMarkdown}>
                   Markdown
                 </button>
@@ -304,6 +332,12 @@ export default function LaunchDesk() {
                   JSON
                 </button>
               </div>
+            </div>
+            <div className="exportMeta" aria-live="polite">
+              <span>Template {completeEvent?.template_version || LAUNCH_PLAN_TEMPLATE_VERSION}</span>
+              <span>Schema {completeEvent?.export_schema_version || JSON_EXPORT_SCHEMA_VERSION}</span>
+              <span>{draft.length} chars</span>
+              {resultNotice && <strong>{resultNotice}</strong>}
             </div>
             <pre>{draft || "The final plan will stream here as the model writes it."}</pre>
           </article>
@@ -358,6 +392,22 @@ export default function LaunchDesk() {
                 </div>
               ))}
               {!latestChecklist && <p>Checklist cards populate from the owner checklist tool.</p>}
+            </div>
+          </section>
+
+          <section className="insightBlock">
+            <div className="sectionTitle">
+              <span>Follow-up mode</span>
+              <strong>{followUpOutput?.critical_count || 0} critical</strong>
+            </div>
+            <div className="ownerList">
+              {(followUpOutput?.questions || []).slice(0, 3).map((item) => (
+                <div className="ownerCard" key={`${item.priority}-${item.category}`}>
+                  <strong>{item.priority} - {item.category}</strong>
+                  <span>{item.question}</span>
+                </div>
+              ))}
+              {!followUpOutput && <p>Missing-detail questions appear after that tool completes.</p>}
             </div>
           </section>
         </aside>
@@ -418,4 +468,20 @@ function downloadText(filename, contents, mimeType) {
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+}
+
+async function copyText(contents) {
+  if (navigator.clipboard && window.isSecureContext) {
+    await navigator.clipboard.writeText(contents);
+    return;
+  }
+  const textarea = document.createElement("textarea");
+  textarea.value = contents;
+  textarea.setAttribute("readonly", "");
+  textarea.style.position = "fixed";
+  textarea.style.opacity = "0";
+  document.body.appendChild(textarea);
+  textarea.select();
+  document.execCommand("copy");
+  textarea.remove();
 }

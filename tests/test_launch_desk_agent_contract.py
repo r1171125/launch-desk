@@ -7,6 +7,7 @@ from launch_desk.agent import (
     normalize_openai_api_key_env,
     stream_launch_desk_events,
 )
+from launch_desk.contracts import JSON_EXPORT_SCHEMA_VERSION, LAUNCH_PLAN_TEMPLATE_VERSION
 from launch_desk.payloads import LaunchDeskPayload
 
 
@@ -31,6 +32,8 @@ def test_launch_prompt_requires_stable_final_sections():
     assert "## Owner checklist" in prompt
     assert "## Launch copy suggestions" in prompt
     assert "## Follow-up questions" in prompt
+    assert LAUNCH_PLAN_TEMPLATE_VERSION in prompt
+    assert "Template version:" in prompt
 
 
 def test_classified_error_event_hides_raw_exception_details():
@@ -68,6 +71,8 @@ def test_stream_bridge_preserves_async_events(monkeypatch):
             "type": "complete",
             "request_id": request_id,
             "model": "test-model",
+            "template_version": LAUNCH_PLAN_TEMPLATE_VERSION,
+            "export_schema_version": JSON_EXPORT_SCHEMA_VERSION,
             "trace_id": "trace-test",
             "saw_tool_progress": True,
             "saw_text_delta": True,
@@ -84,3 +89,4 @@ def test_stream_bridge_preserves_async_events(monkeypatch):
 
     assert [event["type"] for event in events] == ["status", "complete"]
     assert events[-1]["tool_count"] == 1
+    assert events[-1]["template_version"] == LAUNCH_PLAN_TEMPLATE_VERSION

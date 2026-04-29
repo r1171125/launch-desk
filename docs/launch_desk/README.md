@@ -7,7 +7,11 @@ Launch Desk is a working launch-planning agent app for engineering teams. It tur
 - `launch-desk-frontend/` contains the Next/React UI.
 - `launch_desk/routes.py` exposes `/api/launch-desk/health` and `/api/launch-desk/stream`.
 - `launch_desk/agent.py` builds the OpenAI Agents SDK agent, streaming bridge, and tracing metadata.
+- `launch_desk/contracts.py` defines the launch plan template version and structured JSON export schema version.
 - `launch_desk/tools.py` contains deterministic tool implementations that are wrapped as SDK function tools.
+- `launch_desk/sample_briefs.py` contains regression sample briefs for Launch Desk behavior checks.
+- `launch-desk-frontend/utils/launchDeskExport.js` builds the versioned JSON export payload for the frontend.
+- `launch-desk-frontend/utils/sampleBriefs.js` contains the selectable frontend sample briefs.
 - `scripts/run_launch_desk_backend.py` starts the lightweight Flask backend for local Launch Desk development.
 - `scripts/verify_launch_desk_stream.py` posts to the local stream endpoint and confirms tool progress, model text delta, completion, and completion metadata.
 - `scripts/verify_launch_desk_vercel_deployment.py` checks Vercel deployment status and commit metadata when a Vercel token is configured.
@@ -22,6 +26,25 @@ Launch Desk is a working launch-planning agent app for engineering teams. It tur
 - `docs/launch_desk/post_deploy_verification.md` contains the post-deploy stream, page, and browser verification checklist.
 - `docs/launch_desk/production_runbook.md` contains the deployment, observability, rollback, and failure-response checklist.
 - `tests/test_launch_desk_tools.py`, `tests/test_launch_desk_routes.py`, and `tests/test_launch_desk_agent_contract.py` cover tool behavior, SSE route formatting, and agent event contracts.
+
+## Output contract
+
+Launch Desk currently emits Markdown using:
+
+```text
+launch-plan-v2.0
+```
+
+The frontend JSON export uses:
+
+```text
+launch-desk-export-v1.0
+```
+
+The JSON export includes inputs, generated Markdown, detected top-level
+sections, tool outputs, model/run metadata, and trace information. Missing
+detail questions use `prioritized_missing_details_v1` so launch blockers can be
+separated from lower-priority clarifications.
 
 ## OpenAI setup
 

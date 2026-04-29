@@ -1,6 +1,7 @@
 from launch_desk.payloads import LaunchDeskPayload
 from launch_desk.routes import _clear_rate_limit_state_for_tests
 from launch_desk.routes import create_launch_desk_app
+from launch_desk.contracts import JSON_EXPORT_SCHEMA_VERSION, LAUNCH_PLAN_TEMPLATE_VERSION
 
 
 def test_launch_desk_health_reports_key_presence(monkeypatch):
@@ -17,6 +18,9 @@ def test_launch_desk_health_reports_key_presence(monkeypatch):
     assert payload["stream_bridge"] == "async-queue"
     assert payload["request_timeout_seconds"] == 45
     assert payload["rate_limit_per_minute"] == 9
+    assert payload["template_version"] == LAUNCH_PLAN_TEMPLATE_VERSION
+    assert payload["export_schema_version"] == JSON_EXPORT_SCHEMA_VERSION
+    assert payload["export_schema"]["schema_version"] == JSON_EXPORT_SCHEMA_VERSION
 
 
 def test_launch_desk_stream_returns_sse(monkeypatch):
